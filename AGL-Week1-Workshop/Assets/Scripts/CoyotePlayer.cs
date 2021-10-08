@@ -2,24 +2,24 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerController : MonoBehaviour
+public class CoyotePlayer : MonoBehaviour
 {
-
     [SerializeField] private float movementSpeed = 1f;
     [SerializeField] private Rigidbody2D playerRigidBody;
     [SerializeField] private GroundChecker groundChecker;
     [SerializeField] private float jumpSpeed = 1f;
     [SerializeField] private float gravity = 9.8f;
-
+    [SerializeField] private float coyoteTime = 0.5f;
 
     private Vector2 _currentInput;
     private Vector3 _currentVelocity;
-
+    private float? _lastTimeGrounded;
+    private float? _jumpButtonPressed;
 
     // Start is called before the first frame update
     void Start()
     {
-        
+
     }
 
     // Update is called once per frame
@@ -29,12 +29,16 @@ public class PlayerController : MonoBehaviour
         MoveWithInput();
 
         ApplyGravity();
-        
+
 
         if (Input.GetKeyDown(KeyCode.Space))
         {
             TrytoJump();
+            _jumpButtonPressed = Time.time;
         }
+
+        if (groundChecker.IsGrounded)
+            _lastTimeGrounded = Time.time;
 
 
 
@@ -43,7 +47,7 @@ public class PlayerController : MonoBehaviour
 
     private void ApplyGravity()
     {
-        if (groundChecker.IsGrounded == false)
+        if (Time.time - _lastTimeGrounded <= coyoteTime)
             _currentVelocity.y -= gravity * Time.deltaTime;
     }
 
@@ -52,6 +56,11 @@ public class PlayerController : MonoBehaviour
         if (groundChecker.IsGrounded)
         {
             _currentVelocity.y = jumpSpeed;
+            if (Time.time - _jumpButtonPressed <= coyoteTime)
+            {
+                _jumpButtonPressed = null;
+                _lastTimeGrounded = null;
+            }
         }
 
     }
@@ -60,7 +69,7 @@ public class PlayerController : MonoBehaviour
     {
         _currentVelocity.x = _currentInput.x * movementSpeed;
 
-        
+
     }
 
     private void StoreCurrentInput()
