@@ -4,17 +4,19 @@ using UnityEngine;
 
 public class CoyotePlayer : MonoBehaviour
 {
+
     [SerializeField] private float movementSpeed = 1f;
     [SerializeField] private Rigidbody2D playerRigidBody;
     [SerializeField] private GroundChecker groundChecker;
     [SerializeField] private float jumpSpeed = 1f;
     [SerializeField] private float gravity = 9.8f;
-    [SerializeField] private float coyoteTime = 0.5f;
+
+    private float coyoteTime = 0.2f;
+    private float coyoteTimeCounter;
 
     private Vector2 _currentInput;
     private Vector3 _currentVelocity;
-    private float? _lastTimeGrounded;
-    private float? _jumpButtonPressed;
+
 
     // Start is called before the first frame update
     void Start()
@@ -30,15 +32,21 @@ public class CoyotePlayer : MonoBehaviour
 
         ApplyGravity();
 
+        if (groundChecker.IsGrounded == true)
+        {
+            coyoteTimeCounter = coyoteTime;
+        }
+        else
+        {
+            coyoteTimeCounter -= Time.deltaTime;
+        }
+
 
         if (Input.GetKeyDown(KeyCode.Space))
         {
             TrytoJump();
-            _jumpButtonPressed = Time.time;
-        }
 
-        if (groundChecker.IsGrounded)
-            _lastTimeGrounded = Time.time;
+        }
 
 
 
@@ -47,20 +55,20 @@ public class CoyotePlayer : MonoBehaviour
 
     private void ApplyGravity()
     {
-        if (Time.time - _lastTimeGrounded <= coyoteTime)
+        if (groundChecker.IsGrounded == false)
             _currentVelocity.y -= gravity * Time.deltaTime;
     }
 
     private void TrytoJump()
     {
-        if (groundChecker.IsGrounded)
+        if (coyoteTimeCounter > 0f)
         {
             _currentVelocity.y = jumpSpeed;
-            if (Time.time - _jumpButtonPressed <= coyoteTime)
-            {
-                _jumpButtonPressed = null;
-                _lastTimeGrounded = null;
-            }
+        }
+        if(_currentVelocity.y > 0f)
+        {
+            _currentVelocity.y = _currentVelocity.y * 0.5f;
+            coyoteTimeCounter = 0f;
         }
 
     }
